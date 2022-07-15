@@ -7,8 +7,6 @@ output:
     fig_height: 6
 editor_options:
   chunk_output_type: console
-bibliography: bibliography.bib
-csl: utils/apa.csl
 ---
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
@@ -139,98 +137,95 @@ rez_zollner$p
 rez_poggendorff$p
 rez_contrast$p
 rez_white$p
-
-
-
-
-
-
-
-
-rbind(
-  rez_delboeuf$pred,
-  rez_ebbinghaus$pred,
-  rez_ponzo$pred,
-  rez_mullerlyer$pred,
-  rez_contrast$pred,
-  rez_white$pred,
-  rez_poggendorff$pred,
-  rez_zollner$pred,
-  rez_rodframe$pred,
-  rez_verticalhorizontal$pred
-  ) |> 
-  ggplot(aes(x = Illusion_Strength, y = Predicted, group = Illusion_Difference)) +
-  geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = Illusion_Difference), alpha = 0.2) +
-  # geom_vline(xintercept = 0, linetype = "dotted") +
-  geom_line(aes(color = Illusion_Difference)) +
-  scale_y_continuous(limits = c(0, 1), expand = c(0, 0), labels = scales::percent) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_color_manual(values = colorRampPalette(c("#F44336", "#FFC107", "#4CAF50"))(5)) +
-  scale_fill_manual(values = colorRampPalette(c("#F44336", "#FFC107", "#4CAF50"))(5)) +
-  theme_modern() +
-  labs(
-    title = paste0(illusion, " Illusion"),
-    color = "Difficulty", fill = "Difficulty",
-    y = "Probability of Error",
-    x = "Illusion Strength"
-  ) +
-  theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
-  facet_wrap(~Illusion_Type, scales="free")
 ```
 
-### RT
 
 
-```{r message=FALSE, warning=FALSE}
-run_model_rt <- function(df, illusion = "Delboeuf") {
-  data <- df |>
-    filter(Illusion_Type == illusion) |> 
-    mutate(Error = ifelse(Error == 1, "Error", "Correct"))
-  
-  model <- lme4::lmer(
-    RT ~ Error * (Illusion_Difference * Illusion_Strength) + (1 | Participant),
-    data = data
-  )
-  
-  pred <- estimate_relation(model, at = c("Illusion_Strength", "Illusion_Difference", "Error"), length = c(30, 5)) |>
-    mutate(Illusion_Difference = as.factor(Illusion_Difference),
-           Illusion_Type = illusion)
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- rbind( -->
+<!--   rez_delboeuf$pred, -->
+<!--   rez_ebbinghaus$pred, -->
+<!--   rez_ponzo$pred, -->
+<!--   rez_mullerlyer$pred, -->
+<!--   rez_contrast$pred, -->
+<!--   rez_white$pred, -->
+<!--   rez_poggendorff$pred, -->
+<!--   rez_zollner$pred, -->
+<!--   rez_rodframe$pred, -->
+<!--   rez_verticalhorizontal$pred -->
+<!--   ) |>  -->
+<!--   ggplot(aes(x = Illusion_Strength, y = Predicted, group = Illusion_Difference)) + -->
+<!--   geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = Illusion_Difference), alpha = 0.2) + -->
+<!--   # geom_vline(xintercept = 0, linetype = "dotted") + -->
+<!--   geom_line(aes(color = Illusion_Difference)) + -->
+<!--   scale_y_continuous(limits = c(0, 1), expand = c(0, 0), labels = scales::percent) + -->
+<!--   scale_x_continuous(expand = c(0, 0)) + -->
+<!--   scale_color_manual(values = colorRampPalette(c("#F44336", "#FFC107", "#4CAF50"))(5)) + -->
+<!--   scale_fill_manual(values = colorRampPalette(c("#F44336", "#FFC107", "#4CAF50"))(5)) + -->
+<!--   theme_modern() + -->
+<!--   labs( -->
+<!--     title = paste0(illusion, " Illusion"), -->
+<!--     color = "Difficulty", fill = "Difficulty", -->
+<!--     y = "Probability of Error", -->
+<!--     x = "Illusion Strength" -->
+<!--   ) + -->
+<!--   theme(plot.title = element_text(face = "bold", hjust = 0.5)) + -->
+<!--   facet_wrap(~Illusion_Type, scales="free") -->
+<!-- ``` -->
 
-  p <- pred |>
-    mutate(Predicted = ifelse(Error == "Error", -Predicted, Predicted)) |> 
-    ggplot(aes(x = Illusion_Strength, y = Predicted, group = interaction(Illusion_Difference, Error))) +
-    # geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = Illusion_Difference), alpha = 0.2) +
-    geom_line(aes(color = Illusion_Difference)) +
-    scale_y_continuous(expand = c(0, 0)) +
-    scale_x_continuous(expand = c(0, 0)) +
-    scale_color_manual(values = colorRampPalette(c("#F44336", "#FFC107", "#4CAF50"))(5)) +
-    scale_fill_manual(values = colorRampPalette(c("#F44336", "#FFC107", "#4CAF50"))(5)) +
-    theme_modern() +
-    labs(
-      title = paste0(illusion, " Illusion"),
-      color = "Difficulty", fill = "Difficulty",
-      y = "Reaction Time",
-      x = "Illusion Strength"
-    ) +
-    theme(plot.title = element_text(face = "bold", hjust = 0.5))
+<!-- ### RT -->
 
 
-  list(p = p, model = model, pred = pred)
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- run_model_rt <- function(df, illusion = "Delboeuf") { -->
+<!--   data <- df |> -->
+<!--     filter(Illusion_Type == illusion) |>  -->
+<!--     mutate(Error = ifelse(Error == 1, "Error", "Correct")) -->
 
-}
-```
-```{r message=FALSE, warning=FALSE}
-run_model_rt(df, illusion = "Delboeuf")$p
-run_model_rt(df, illusion = "Ebbinghaus")$p
-run_model_rt(df, illusion = "Ponzo")$p
-run_model_rt(df, illusion = "Müller-Lyer")$p
-run_model_rt(df, illusion = "Contrast")$p
-run_model_rt(df, illusion = "White")$p
-run_model_rt(df, illusion = "Poggendorff")$p
-run_model_rt(df, illusion = "Zöllner")$p
-run_model_rt(df, illusion = "Rod-Frame")$p
-run_model_rt(df, illusion = "Vertical-Horizontal")$p
-```
+<!--   model <- lme4::lmer( -->
+<!--     RT ~ Error * (Illusion_Difference * Illusion_Strength) + (1 | Participant), -->
+<!--     data = data -->
+<!--   ) -->
+
+<!--   pred <- estimate_relation(model, at = c("Illusion_Strength", "Illusion_Difference", "Error"), length = c(30, 5)) |> -->
+<!--     mutate(Illusion_Difference = as.factor(Illusion_Difference), -->
+<!--            Illusion_Type = illusion) -->
+
+<!--   p <- pred |> -->
+<!--     mutate(Predicted = ifelse(Error == "Error", -Predicted, Predicted)) |>  -->
+<!--     ggplot(aes(x = Illusion_Strength, y = Predicted, group = interaction(Illusion_Difference, Error))) + -->
+<!--     # geom_ribbon(aes(ymin = CI_low, ymax = CI_high, fill = Illusion_Difference), alpha = 0.2) + -->
+<!--     geom_line(aes(color = Illusion_Difference)) + -->
+<!--     scale_y_continuous(expand = c(0, 0)) + -->
+<!--     scale_x_continuous(expand = c(0, 0)) + -->
+<!--     scale_color_manual(values = colorRampPalette(c("#F44336", "#FFC107", "#4CAF50"))(5)) + -->
+<!--     scale_fill_manual(values = colorRampPalette(c("#F44336", "#FFC107", "#4CAF50"))(5)) + -->
+<!--     theme_modern() + -->
+<!--     labs( -->
+<!--       title = paste0(illusion, " Illusion"), -->
+<!--       color = "Difficulty", fill = "Difficulty", -->
+<!--       y = "Reaction Time", -->
+<!--       x = "Illusion Strength" -->
+<!--     ) + -->
+<!--     theme(plot.title = element_text(face = "bold", hjust = 0.5)) -->
+
+
+<!--   list(p = p, model = model, pred = pred) -->
+
+<!-- } -->
+<!-- ``` -->
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- run_model_rt(df, illusion = "Delboeuf")$p -->
+<!-- run_model_rt(df, illusion = "Ebbinghaus")$p -->
+<!-- run_model_rt(df, illusion = "Ponzo")$p -->
+<!-- run_model_rt(df, illusion = "Müller-Lyer")$p -->
+<!-- run_model_rt(df, illusion = "Contrast")$p -->
+<!-- run_model_rt(df, illusion = "White")$p -->
+<!-- run_model_rt(df, illusion = "Poggendorff")$p -->
+<!-- run_model_rt(df, illusion = "Zöllner")$p -->
+<!-- run_model_rt(df, illusion = "Rod-Frame")$p -->
+<!-- run_model_rt(df, illusion = "Vertical-Horizontal")$p -->
+<!-- ``` -->
 
 
 
